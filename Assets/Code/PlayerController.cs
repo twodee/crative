@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
   public GameObject cratePrefab;
+  public GameObject previewCrate;
   private GameObject[,,] grid;
   private GameObject prefabParent;
 
@@ -13,14 +14,19 @@ public class PlayerController : MonoBehaviour {
   }
 
   void Update() {
-    if (Input.GetButtonUp("Fire1")) {
-      // (0.7284, 5.675345353434, 8.99999999)
+    {
       Vector3 p = transform.position + transform.forward * 5 + Vector3.down * 0.5f;
       Vector3Int q = new Vector3Int(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), Mathf.RoundToInt(p.z));
-      if (q.x >= 0 && q.x <= 20 &&
+      bool isCratable = q.x >= 0 && q.x <= 20 &&
           q.y >= 0 && q.y <= 10 &&
           q.z >= 0 && q.z <= 20 &&
-          grid[q.x, q.y, q.z] == null) {
+          grid[q.x, q.y, q.z] == null;
+      previewCrate.SetActive(isCratable);
+      if (isCratable) {
+        previewCrate.transform.position = q;
+      }
+
+      if (isCratable && Input.GetButtonUp("Fire1")) {
         GameObject instance = Instantiate(cratePrefab, prefabParent.transform);
         instance.transform.position = q;
         grid[q.x, q.y, q.z] = instance;
