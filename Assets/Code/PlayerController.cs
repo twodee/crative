@@ -89,10 +89,11 @@ public class PlayerController : MonoBehaviour {
       List<HashSet<Vector3Int>> groups = Group();
 
       if (challenges[level].IsCorrect(groups)) {
-        print("Congratulations! you won epicly! keep doing that! it's good for you!");
+        feedbackText.text = "Congratulations! you won epicly! keep doing that! it's good for you!";
       } else {
-        print("You failed miserably");
+        feedbackText.text = "You failed miserably";
       }
+      feedbackText.enabled = true;
     }
   }
 
@@ -180,8 +181,38 @@ public class PlayerController : MonoBehaviour {
   }
 
   private static readonly Challenge[] challenges = {
-    new Challenge ("hi", groups => {
-      return true;
+    new Challenge ("Make a cube out of eight blocks.", groups => {
+      if (groups.Count != 1) {
+        return false;
+      }
+
+      HashSet<Vector3Int> group = groups[0];
+      if (group.Count != 8) {
+        return false;
+      }
+
+      Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+      foreach (Vector3Int p in group) {
+        if (p.x < min.x) {
+          min.x = p.x;
+        }
+        if (p.y < min.y) {
+          min.y = p.y;
+        }
+        if (p.z < min.z) {
+          min.z = p.z;
+        }
+      }
+
+      return
+        group.Contains(new Vector3Int(min.x, min.y, min.z)) &&
+        group.Contains(new Vector3Int(min.x + 1, min.y, min.z)) &&
+        group.Contains(new Vector3Int(min.x, min.y + 1, min.z)) &&
+        group.Contains(new Vector3Int(min.x + 1, min.y + 1, min.z)) &&
+        group.Contains(new Vector3Int(min.x, min.y, min.z + 1)) &&
+        group.Contains(new Vector3Int(min.x + 1, min.y, min.z + 1)) &&
+        group.Contains(new Vector3Int(min.x, min.y + 1, min.z + 1)) &&
+        group.Contains(new Vector3Int(min.x + 1, min.y + 1, min.z + 1));
     })
   };
 }
