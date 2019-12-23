@@ -1,24 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class PlayerController : MonoBehaviour {
   public GameObject cratePrefab;
   public GameObject previewCrate;
   public LayerMask buildable;
   public float rayPush;
+  public int level;
+  public TextMeshProUGUI feedbackText;
 
   private GameObject[,,] grid;
   private GameObject prefabParent;
   private new Transform camera;
-  private const int WIDTH = 21;
-  private const int HEIGHT = 11;
-  private const int DEPTH = 21;
+  private readonly Vector3Int dimensions = new Vector3Int(21, 11, 21);
 
   void Start() {
-    grid = new GameObject[WIDTH, HEIGHT, DEPTH];
+    grid = new GameObject[dimensions.x, dimensions.y, dimensions.z];
     prefabParent = GameObject.Find("Prefabs");
     camera = transform.Find("MainCamera");
+    GoToLevel(0);
+  }
+
+  void GoToLevel(int level) {
+    this.level = level;
+    print(challenges[level].prompt);
+    feedbackText.text = challenges[level].prompt;
+    feedbackText.enabled = true;
   }
 
   void Update() {
@@ -63,6 +72,7 @@ public class PlayerController : MonoBehaviour {
             GameObject instance = Instantiate(cratePrefab, prefabParent.transform);
             instance.transform.position = q;
             grid[q.x, q.y, q.z] = instance;
+            feedbackText.enabled = false;
           }
         }
       }
@@ -70,8 +80,19 @@ public class PlayerController : MonoBehaviour {
 
     previewCrate.SetActive(isGrid);
 
-    if (Input.GetButtonUp("Fire1")) {
-      Group();
+
+    if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
+      feedbackText.enabled = !feedbackText.enabled;
+    }
+
+    if (Input.GetButtonUp("Submit")) {
+      List<HashSet<Vector3Int>> groups = Group();
+
+      if (challenges[level].IsCorrect(groups)) {
+        print("Congratulations! you won epicly! keep doing that! it's good for you!");
+      } else {
+        print("You failed miserably");
+      }
     }
   }
 
@@ -85,13 +106,13 @@ public class PlayerController : MonoBehaviour {
       p.z >= 0 && p.z <= 20;
   }
 
-  private void Group() {
+  private List<HashSet<Vector3Int>> Group() {
     List<HashSet<Vector3Int>> groups = new List<HashSet<Vector3Int>>();
-    bool[,,] isVisited = new bool[WIDTH, HEIGHT, DEPTH];
+    bool[,,] isVisited = new bool[dimensions.x, dimensions.y, dimensions.z];
 
-    for (int z = 0; z < DEPTH; ++z) {
-      for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
+    for (int z = 0; z < dimensions.z; ++z) {
+      for (int y = 0; y < dimensions.y; ++y) {
+        for (int x = 0; x < dimensions.x; ++x) {
           if (!isVisited[x, y, z] && grid[x, y, z] != null) {
             groups.Add(Flood(new Vector3Int(x, y, z), isVisited));
           }
@@ -100,6 +121,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     Debug.LogFormat("number of groups: {0}", groups.Count);
+    return groups;
   }
 
   private HashSet<Vector3Int> Flood(Vector3Int seed, bool[,,] isVisited) {
@@ -123,7 +145,7 @@ public class PlayerController : MonoBehaviour {
       bool[] isSeededBefore = { false, false, false };
       bool[] isSeededAfter = { false, false, false };
 
-      while (p.x < WIDTH && IsFloodable(p.x, p.y, p.z)) {
+      while (p.x < dimensions.x && IsFloodable(p.x, p.y, p.z)) {
         isVisited[p.x, p.y, p.z] = true;
         group.Add(p);
 
@@ -139,10 +161,10 @@ public class PlayerController : MonoBehaviour {
 
           // Check the after scanline.
           p[d] += 2;
-          if (!isSeededAfter[d] && p[d] >= 0 && IsFloodable(p.x, p.y, p.z)) {
+          if (!isSeededAfter[d] && p[d] < dimensions[d] && IsFloodable(p.x, p.y, p.z)) {
             queue.Enqueue(p);
             isSeededAfter[d] = true;
-          } else if (isSeededAfter[d] && p[d] >= 0 && !IsFloodable(p.x, p.y, p.z)) {
+          } else if (isSeededAfter[d] && p[d] < dimensions[d] && !IsFloodable(p.x, p.y, p.z)) {
             isSeededAfter[d] = false;
           }
 
@@ -156,5 +178,20 @@ public class PlayerController : MonoBehaviour {
 
     return group;
   }
+
+  private static readonly Challenge[] challenges = {
+    new Challenge ("hi", groups => {
+      return true;
+    })
+  };
 }
 
+struct Challenge {
+  public string prompt;
+  public System.Func<List<HashSet<Vector3Int>>, bool> IsCorrect;
+
+  public Challenge(string prompt, System.Func<List<HashSet<Vector3Int>>, bool> IsCorrect) {
+    this.prompt = prompt;
+    this.IsCorrect = IsCorrect;
+  }
+}
