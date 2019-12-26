@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -14,13 +13,21 @@ public class PlayerController : MonoBehaviour {
   private GameObject prefabParent;
   private new Transform camera;
   private bool isComplete;
-  private readonly Vector3Int dimensions = new Vector3Int(21, 11, 21);
+
+  private static readonly Challenge[] challenges = {
+    Challenge.Cube8,
+    Challenge.FloatingSquare,
+    Challenge.DoubledPrism,
+    Challenge.Checker3,
+    Challenge.Plus3,
+    Challenge.MirrorElbow,
+  };
 
   void Start() {
-    grid = new GameObject[dimensions.x, dimensions.y, dimensions.z];
+    grid = new GameObject[Constants.dimensions.x, Constants.dimensions.y, Constants.dimensions.z];
     prefabParent = GameObject.Find("Prefabs");
     camera = transform.Find("MainCamera");
-    GoToLevel(0);
+    GoToLevel(3);
   }
 
   void GoToLevel(int level) {
@@ -33,12 +40,18 @@ public class PlayerController : MonoBehaviour {
       Destroy(prefabParent.transform.GetChild(i).gameObject);
     }
 
-    for (int z = 0; z < dimensions.z; ++z) {
-      for (int y = 0; y < dimensions.y; ++y) {
-        for (int x = 0; x < dimensions.x; ++x) {
+    for (int z = 0; z < Constants.dimensions.z; ++z) {
+      for (int y = 0; y < Constants.dimensions.y; ++y) {
+        for (int x = 0; x < Constants.dimensions.x; ++x) {
           grid[x, y, z] = null;
         }
       }
+    }
+
+    foreach (Vector3Int p in challenges[level].initialBlocks) {
+      GameObject instance = Instantiate(cratePrefab, prefabParent.transform);
+      instance.transform.position = p;
+      grid[p.x, p.y, p.z] = instance;
     }
   }
 
@@ -100,17 +113,17 @@ public class PlayerController : MonoBehaviour {
 
     if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
       feedbackText.text = challenges[level].prompt;
-      feedbackText.enabled = !feedbackText.enabled;
+      feedbackText.enabled = true;
     }
 
     if (Input.GetButtonUp("Submit")) {
       List<HashSet<Vector3Int>> groups = Group();
 
-      if (challenges[level].IsCorrect(groups)) {
-        feedbackText.text = "Congratulations! you won epicly! keep doing that! it's good for you!";
+      if (challenges[level].IsCorrect(groups, challenges[level].initialBlocks)) {
+        feedbackText.text = "You did it! Life's full of good things. Click to continue.";
         isComplete = true;
       } else {
-        feedbackText.text = "You failed miserably";
+        feedbackText.text = "Try again, we all make mistakes sometimes.";
       }
       feedbackText.enabled = true;
     }
@@ -121,18 +134,18 @@ public class PlayerController : MonoBehaviour {
   }
 
   private bool IsGrid(Vector3Int p) {
-    return p.x >= 0 && p.x < dimensions.x &&
-      p.y >= 0 && p.y < dimensions.y &&
-      p.z >= 0 && p.z < dimensions.z;
+    return p.x >= 0 && p.x < Constants.dimensions.x &&
+      p.y >= 0 && p.y < Constants.dimensions.y &&
+      p.z >= 0 && p.z < Constants.dimensions.z;
   }
 
   private List<HashSet<Vector3Int>> Group() {
     List<HashSet<Vector3Int>> groups = new List<HashSet<Vector3Int>>();
-    bool[,,] isVisited = new bool[dimensions.x, dimensions.y, dimensions.z];
+    bool[,,] isVisited = new bool[Constants.dimensions.x, Constants.dimensions.y, Constants.dimensions.z];
 
-    for (int z = 0; z < dimensions.z; ++z) {
-      for (int y = 0; y < dimensions.y; ++y) {
-        for (int x = 0; x < dimensions.x; ++x) {
+    for (int z = 0; z < Constants.dimensions.z; ++z) {
+      for (int y = 0; y < Constants.dimensions.y; ++y) {
+        for (int x = 0; x < Constants.dimensions.x; ++x) {
           if (!isVisited[x, y, z] && grid[x, y, z] != null) {
             groups.Add(Flood(new Vector3Int(x, y, z), isVisited));
           }
@@ -164,7 +177,7 @@ public class PlayerController : MonoBehaviour {
       bool[] isSeededBefore = { false, false, false };
       bool[] isSeededAfter = { false, false, false };
 
-      while (p.x < dimensions.x && IsFloodable(p.x, p.y, p.z)) {
+      while (p.x < Constants.dimensions.x && IsFloodable(p.x, p.y, p.z)) {
         isVisited[p.x, p.y, p.z] = true;
         group.Add(p);
 
@@ -180,10 +193,10 @@ public class PlayerController : MonoBehaviour {
 
           // Check the after scanline.
           p[d] += 2;
-          if (!isSeededAfter[d] && p[d] < dimensions[d] && IsFloodable(p.x, p.y, p.z)) {
+          if (!isSeededAfter[d] && p[d] < Constants.dimensions[d] && IsFloodable(p.x, p.y, p.z)) {
             queue.Enqueue(p);
             isSeededAfter[d] = true;
-          } else if (isSeededAfter[d] && p[d] < dimensions[d] && !IsFloodable(p.x, p.y, p.z)) {
+          } else if (isSeededAfter[d] && p[d] < Constants.dimensions[d] && !IsFloodable(p.x, p.y, p.z)) {
             isSeededAfter[d] = false;
           }
 
@@ -197,156 +210,5 @@ public class PlayerController : MonoBehaviour {
 
     return group;
   }
-
-  private static readonly Challenge[] challenges = {
-    new Challenge ("Make a cube out of eight blocks.", groups => {
-      if (groups.Count != 1) {
-        return false;
-      }
-
-      HashSet<Vector3Int> group = groups[0];
-      if (group.Count != 8) {
-        return false;
-      }
-
-      Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
-      foreach (Vector3Int p in group) {
-        if (p.x < min.x) {
-          min.x = p.x;
-        }
-        if (p.y < min.y) {
-          min.y = p.y;
-        }
-        if (p.z < min.z) {
-          min.z = p.z;
-        }
-      }
-
-      return
-        group.Contains(new Vector3Int(min.x, min.y, min.z)) &&
-        group.Contains(new Vector3Int(min.x + 1, min.y, min.z)) &&
-        group.Contains(new Vector3Int(min.x, min.y + 1, min.z)) &&
-        group.Contains(new Vector3Int(min.x + 1, min.y + 1, min.z)) &&
-        group.Contains(new Vector3Int(min.x, min.y, min.z + 1)) &&
-        group.Contains(new Vector3Int(min.x + 1, min.y, min.z + 1)) &&
-        group.Contains(new Vector3Int(min.x, min.y + 1, min.z + 1)) &&
-        group.Contains(new Vector3Int(min.x + 1, min.y + 1, min.z + 1));
-    }),
-
-    new Challenge ("Create a rectangular prism that follows these rules: the height is twice the width, and the width and depth are the same.", groups => {
-      if (groups.Count != 1) {
-        return false;
-      }
-
-      HashSet<Vector3Int> group = groups[0];
-
-      Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
-      Vector3Int max = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
-
-      foreach (Vector3Int p in group) {
-        if (p.x < min.x) {
-          min.x = p.x;
-        } 
-        if (p.y < min.y) {
-          min.y = p.y;
-        }
-        if (p.z < min.z) {
-          min.z = p.z;
-        }
-        if (p.x > max.x) {
-          max.x = p.x;
-        }
-        if (p.y > max.y) {
-          max.y = p.y;
-        }
-        if (p.z > max.z) {
-          max.z = p.z;
-        }
-      }
-
-      Vector3Int dims = max - min + new Vector3Int(1, 1, 1);
-      if (dims.x != dims.z) {
-        return false;
-      }
-
-      if (dims.y != dims.x * 2) {
-        return false;
-      }
-
-      if (group.Count != dims.y * dims.x * dims.z) {
-        return false;
-      }
-
-      return true;
-    }),
-
-    // 3D plus
-    new Challenge ("Create a structure out of 7 blocks, with 6 of them touching only 1 other block.", groups => {
-      if (groups.Count != 1) {
-        return false;
-      }
-
-      HashSet<Vector3Int> group = groups[0];
-
-      if (group.Count != 7) {
-        return false;
-      }
-
-      Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
-      Vector3Int max = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
-      foreach (Vector3Int p in group) {
-        if (p.x < min.x) {
-          min.x = p.x;
-        }
-        if (p.y < min.y) {
-          min.y = p.y;
-        }
-        if (p.z < min.z) {
-          min.z = p.z;
-        }
-        if (p.x > max.x) {
-          max.x = p.x;
-        }
-        if (p.y > max.y) {
-          max.y = p.y;
-        }
-        if (p.z > max.z) {
-          max.z = p.z;
-        }
-      }
-
-      Vector3Int mid = max + min;
-      mid.x /= 2;
-      mid.y /= 2;
-      mid.z /= 2;
-
-      print(min);
-      print(mid);
-      print(max);
-
-      return GroupHas(group,
-        mid,
-        mid + Vector3Int.right,
-        mid + Vector3Int.left,
-        mid + Vector3Int.up,
-        mid + Vector3Int.down,
-        mid + new Vector3Int(0, 0, 1),
-        mid + new Vector3Int(0, 0, -1));
-    })
-
-  };
-
-  private static bool GroupHas(HashSet<Vector3Int> group, params Vector3Int[] locations) {
-    return locations.All(p => group.Contains(p));
-  }
 }
 
-struct Challenge {
-  public string prompt;
-  public System.Func<List<HashSet<Vector3Int>>, bool> IsCorrect;
-
-  public Challenge(string prompt, System.Func<List<HashSet<Vector3Int>>, bool> IsCorrect) {
-    this.prompt = prompt;
-    this.IsCorrect = IsCorrect;
-  }
-}
