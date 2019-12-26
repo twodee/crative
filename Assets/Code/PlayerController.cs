@@ -16,18 +16,19 @@ public class PlayerController : MonoBehaviour {
 
   private static readonly Challenge[] challenges = {
     Challenge.Cube8,
-    Challenge.FloatingSquare,
-    Challenge.DoubledPrism,
     Challenge.Checker3,
-    Challenge.Plus3,
+    Challenge.FloatingSquare,
     Challenge.MirrorElbow,
+    Challenge.DoubledPrism,
+    Challenge.Outline,
+    Challenge.Plus3,
   };
 
   void Start() {
     grid = new GameObject[Constants.dimensions.x, Constants.dimensions.y, Constants.dimensions.z];
     prefabParent = GameObject.Find("Prefabs");
     camera = transform.Find("MainCamera");
-    GoToLevel(3);
+    GoToLevel(0);
   }
 
   void GoToLevel(int level) {
@@ -97,7 +98,7 @@ public class PlayerController : MonoBehaviour {
         // If the target location is on the grid, but not too close to the
         // player, we add a crate when firing or show the preview if the
         // location is unoccupied.
-        if (IsGrid(q) && (new Vector2(q.x, q.z) - new Vector2(camera.transform.position.x, camera.transform.position.z)).magnitude > 1) {
+        if (IsGrid(q) && (new Vector3(q.x, q.y, q.z) - camera.transform.position).magnitude > 0.87) {
           if (Input.GetButtonUp("Fire1")) {
             GameObject instance = Instantiate(cratePrefab, prefabParent.transform);
             instance.transform.position = q;
@@ -126,6 +127,10 @@ public class PlayerController : MonoBehaviour {
         feedbackText.text = "Try again, we all make mistakes sometimes.";
       }
       feedbackText.enabled = true;
+    }
+
+    if (Input.GetKeyDown(KeyCode.Alpha0)) {
+      GoToLevel(level);
     }
   }
 

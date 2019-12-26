@@ -17,6 +17,17 @@ struct Challenge {
     return ps.All(p => group.Contains(p));
   }
 
+  private static int CountNeighbors(HashSet<Vector3Int> group, Vector3Int p) {
+    return new Vector3Int[] {
+      p + new Vector3Int(1, 0, 0),
+      p + new Vector3Int(-1, 0, 0),
+      p + new Vector3Int(0, 1, 0),
+      p + new Vector3Int(0, -1, 0),
+      p + new Vector3Int(0, 0, 1),
+      p + new Vector3Int(0, 0, -1),
+    }.Count(q => group.Contains(q));
+  }
+
   private static HashSet<Vector3Int> Combine(List<HashSet<Vector3Int>> groups) {
     HashSet<Vector3Int> all = new HashSet<Vector3Int>();
     foreach (HashSet<Vector3Int> group in groups) {
@@ -277,6 +288,20 @@ struct Challenge {
       new Vector3Int(min.x, min.y, min.z + 2),
       new Vector3Int(min.x + 1, min.y, min.z + 1),
       new Vector3Int(min.x + 2, min.y, min.z + 2));
+  });
+
+  public static readonly Challenge Outline = new Challenge("Make a structure that uses 8 crates, with each touching 2 others.", (groups, initialCrates) => {
+    if (groups.Count != 1) {
+      return false;
+    }
+
+    HashSet<Vector3Int> group = groups[0];
+
+    if (group.Count != 8) {
+      return false;
+    }
+
+    return group.All(p => CountNeighbors(group, p) == 2);
   });
 
   public static readonly Challenge Template = new Challenge("...", (groups, initialBlocks) => {
