@@ -290,6 +290,84 @@ struct Challenge {
       new Vector3Int(min.x + 2, min.y, min.z + 2));
   });
 
+  public static readonly Challenge MonotonicTower = new Challenge("Create a structure with 5 levels, with each level having more crates than the level below.", (groups, initialBlocks) => {
+    if (groups.Count != 1) {
+      return false;
+    }
+
+    HashSet<Vector3Int> group = Combine(groups);
+
+    Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+    Vector3Int max = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
+    foreach (Vector3Int p in group) {
+      if (p.x < min.x) {
+        min.x = p.x;
+      }
+      if (p.y < min.y) {
+        min.y = p.y;
+      }
+      if (p.z < min.z) {
+        min.z = p.z;
+      }
+      if (p.x > max.x) {
+        max.x = p.x;
+      }
+      if (p.y > max.y) {
+        max.y = p.y;
+      }
+      if (p.z > max.z) {
+        max.z = p.z;
+      }
+    }
+
+    if (max.y - min.y +1 != 5) {
+      return false;
+    }
+
+    int belowCount = group.Count(p => p.y == min.y);
+    for (int y = min.y + 1; y <= max.y; ++y) {
+      int hereCount = group.Count(p => p.y == y);
+      if (hereCount <= belowCount) {
+        return false;
+      }
+      belowCount = hereCount;
+    }
+
+    return true;
+  });
+
+  public static readonly Challenge CupsideDown  = new Challenge("Create a structure that looks like it could have 27 crates but actually has 25.", (groups, initialBlocks) => {
+    if (groups.Count != 1) {
+      return false;
+    }
+
+    HashSet<Vector3Int> group = Combine(groups);
+
+    Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+    foreach (Vector3Int p in group) {
+      if (p.x < min.x) {
+        min.x = p.x;
+      }
+      if (p.y < min.y) {
+        min.y = p.y;
+      }
+      if (p.z < min.z) {
+        min.z = p.z;
+      }
+    }
+
+    if (min.y != 0) {
+      return false;
+    }
+
+    return Has(group,
+      min,
+      new Vector3Int(min.x + 2, min.y, min.z),
+      new Vector3Int(min.x, min.y, min.z + 2),
+      new Vector3Int(min.x + 1, min.y, min.z + 1),
+      new Vector3Int(min.x + 2, min.y, min.z + 2));
+  });
+
   public static readonly Challenge Outline = new Challenge("Make a structure that uses 8 crates, with each touching 2 others.", (groups, initialCrates) => {
     if (groups.Count != 1) {
       return false;
