@@ -320,7 +320,7 @@ struct Challenge {
       }
     }
 
-    if (max.y - min.y +1 != 5) {
+    if (max.y - min.y + 1 != 5) {
       return false;
     }
 
@@ -336,7 +336,7 @@ struct Challenge {
     return true;
   });
 
-  public static readonly Challenge CupsideDown  = new Challenge("Create a structure that looks like it could have 27 crates but actually has 25.", (groups, initialBlocks) => {
+  public static readonly Challenge CupsideDown = new Challenge("Create a structure that looks like it could have 27 crates but actually has 25.", (groups, initialBlocks) => {
     if (groups.Count != 1) {
       return false;
     }
@@ -399,4 +399,86 @@ struct Challenge {
        group.Contains(new Vector3Int(Constants.dimensions.x / 2 - 1, 1, Constants.dimensions.z / 2)) ||
        group.Contains(new Vector3Int(Constants.dimensions.x / 2, 2, Constants.dimensions.z / 2)));
   });
+
+  public static readonly Challenge ConnectTowers = new Challenge("Turn this into one structure by placing only 3 blocks.", (groups, initialBlocks) => {
+    if (groups.Count != 1) {
+      return false;
+    }
+
+    HashSet<Vector3Int> group = groups[0];
+
+    if (group.Count != 13) {
+      return false;
+    }
+
+    return
+      initialBlocks.All(p => group.Contains(p));
+  },
+      new Vector3Int(Constants.dimensions.x / 2 - 1, 0, Constants.dimensions.z / 2 - 1),
+      //2
+      new Vector3Int(Constants.dimensions.x / 2 + 1, 0, Constants.dimensions.z / 2 + 1),
+      new Vector3Int(Constants.dimensions.x / 2 + 1, 1, Constants.dimensions.z / 2 + 1),
+      //3
+      new Vector3Int(Constants.dimensions.x / 2 + 1, 0, Constants.dimensions.z / 2 - 1),
+      new Vector3Int(Constants.dimensions.x / 2 + 1, 1, Constants.dimensions.z / 2 - 1),
+      new Vector3Int(Constants.dimensions.x / 2 + 1, 2, Constants.dimensions.z / 2 - 1),
+      //4
+      new Vector3Int(Constants.dimensions.x / 2 - 1, 0, Constants.dimensions.z / 2 + 1),
+      new Vector3Int(Constants.dimensions.x / 2 - 1, 1, Constants.dimensions.z / 2 + 1),
+      new Vector3Int(Constants.dimensions.x / 2 - 1, 2, Constants.dimensions.z / 2 + 1),
+      new Vector3Int(Constants.dimensions.x / 2 - 1, 3, Constants.dimensions.z / 2 + 1)
+  );
+
+  public static readonly Challenge FlipBoth = new Challenge("Flip this structure both horizontal and vertically.", (groups, initialBlocks) => {
+    if (groups.Count != 1) {
+      return false;
+    }
+
+    HashSet<Vector3Int> group = groups[0];
+
+    if (group.Count != initialBlocks.Length) {
+      return false;
+    }
+
+    return Has(group,
+      // Bottom row
+      new Vector3Int(Constants.dimensions.x / 2 - 0, 4, Constants.dimensions.z / 2),
+      new Vector3Int(Constants.dimensions.x / 2 - 1, 4, Constants.dimensions.z / 2),
+      new Vector3Int(Constants.dimensions.x / 2 - 2, 4, Constants.dimensions.z / 2),
+      new Vector3Int(Constants.dimensions.x / 2 - 3, 4, Constants.dimensions.z / 2),
+
+      new Vector3Int(Constants.dimensions.x / 2 - 0, 3, Constants.dimensions.z / 2),
+
+      // Middle row
+      new Vector3Int(Constants.dimensions.x / 2 - 0, 2, Constants.dimensions.z / 2),
+      new Vector3Int(Constants.dimensions.x / 2 - 1, 2, Constants.dimensions.z / 2),
+      new Vector3Int(Constants.dimensions.x / 2 - 2, 2, Constants.dimensions.z / 2),
+
+      new Vector3Int(Constants.dimensions.x / 2 - 0, 1, Constants.dimensions.z / 2),
+
+      // Top row
+      new Vector3Int(Constants.dimensions.x / 2 + 0, 0, Constants.dimensions.z / 2),
+      new Vector3Int(Constants.dimensions.x / 2 + 1, 0, Constants.dimensions.z / 2)
+    );
+  },
+
+  // Bottom row
+  new Vector3Int(Constants.dimensions.x / 2 + 0, 0, Constants.dimensions.z / 2),
+  new Vector3Int(Constants.dimensions.x / 2 + 1, 0, Constants.dimensions.z / 2),
+  new Vector3Int(Constants.dimensions.x / 2 + 2, 0, Constants.dimensions.z / 2),
+  new Vector3Int(Constants.dimensions.x / 2 + 3, 0, Constants.dimensions.z / 2),
+
+  new Vector3Int(Constants.dimensions.x / 2 + 0, 1, Constants.dimensions.z / 2),
+
+  // Middle row
+  new Vector3Int(Constants.dimensions.x / 2 + 0, 2, Constants.dimensions.z / 2),
+  new Vector3Int(Constants.dimensions.x / 2 + 1, 2, Constants.dimensions.z / 2),
+  new Vector3Int(Constants.dimensions.x / 2 + 2, 2, Constants.dimensions.z / 2),
+
+  new Vector3Int(Constants.dimensions.x / 2 + 0, 3, Constants.dimensions.z / 2),
+
+  // Top row
+  new Vector3Int(Constants.dimensions.x / 2 + 0, 4, Constants.dimensions.z / 2),
+  new Vector3Int(Constants.dimensions.x / 2 - 1, 4, Constants.dimensions.z / 2)
+);
 }
