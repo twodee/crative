@@ -15,9 +15,15 @@ public class PlayerController : MonoBehaviour {
   private bool isComplete;
 
   private static readonly Challenge[] challenges = {
-    Challenge.FlipBoth,
-    Challenge.ConnectTowers,
+    Challenge.Loop3,
+    Challenge.CupsideDown,
     Challenge.MonotonicTower,
+    Challenge.FourQueens,
+    Challenge.ConnectTowers,
+    Challenge.VolumeUnderArea,
+    Challenge.VolumeOverArea,
+    Challenge.VolumeEqualsArea,
+    Challenge.FlipBoth,
     Challenge.Cube8,
     Challenge.Checker3,
     Challenge.FloatingSquare,
