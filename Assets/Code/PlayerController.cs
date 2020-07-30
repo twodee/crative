@@ -15,8 +15,8 @@ public class PlayerController : MonoBehaviour {
   private bool isComplete;
 
   private static readonly Challenge[] challenges = {
-    Challenge.Loop3,
     Challenge.CupsideDown,
+    Challenge.Loop3,
     Challenge.MonotonicTower,
     Challenge.FourQueens,
     Challenge.ConnectTowers,
@@ -32,6 +32,12 @@ public class PlayerController : MonoBehaviour {
     Challenge.Outline,
     Challenge.Plus3,
   };
+
+  void Awake() {
+    QualitySettings.vSyncCount = 0;
+    Application.targetFrameRate = 50;
+    Debug.Log(Application.targetFrameRate);
+  }
 
   void Start() {
     grid = new GameObject[Constants.dimensions.x, Constants.dimensions.y, Constants.dimensions.z];
@@ -70,6 +76,7 @@ public class PlayerController : MonoBehaviour {
       GoToLevel((level + 1) % challenges.Length);
       return;
     }
+
 
     previewCrate.SetActive(false);
     RaycastHit hit;
@@ -120,6 +127,7 @@ public class PlayerController : MonoBehaviour {
         }
       }
     }
+
 
     if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
       feedbackText.text = challenges[level].prompt;

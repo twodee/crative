@@ -347,6 +347,7 @@ struct Challenge {
       });
 
 
+
   public static readonly Challenge Loop3 =
     new Challenge("Create a structure using 16 blocks, such that every crate touches exactly 2 others, and crates appear in runs of 3.", (groups, initialBlocks) =>
       {
