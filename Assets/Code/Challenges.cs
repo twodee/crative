@@ -881,4 +881,107 @@ struct Challenge {
 
       return volume == area;
     });
+
+  public static readonly Challenge Factor20 =
+    new Challenge("Make a line of crates for each of the factors of 20, each being that number of crates long.", (groups, initialBlocks) => {
+      HashSet<int> factors = new HashSet<int> {1, 2, 4, 5, 10, 20};
+      HashSet<int> sizes = new HashSet<int> (groups.Select (group => group.Count));
+
+      // Debug.Log(string.Join(", ", factors));
+      // Debug.Log(string.Join(", ", sizes));
+
+      if (!sizes.SetEquals(factors)) {
+        return false;
+      }
+
+      foreach (HashSet<Vector3Int> group in groups) {
+        if (group.Count == 1) {
+          continue;
+        }
+
+        Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+        Vector3Int max = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
+
+        foreach (Vector3Int p in group) {
+          if (p.x < min.x) {
+            min.x = p.x;
+          }
+          if (p.y < min.y) {
+            min.y = p.y;
+          }
+          if (p.z < min.z) {
+            min.z = p.z;
+          }
+          if (p.x > max.x) {
+            max.x = p.x;
+          }
+          if (p.y > max.y) {
+            max.y = p.y;
+          }
+          if (p.z > max.z) {
+            max.z = p.z;
+          }
+        }
+        
+        Vector3Int diff = max - min;
+        Vector3Int delta = Vector3Int.zero;
+        if (diff.x > 0) {
+          delta = Vector3Int.right;        
+        } else if (diff.y > 0) {
+          delta = Vector3Int.up;
+        } else if (diff.z > 0) {
+          delta = new Vector3Int(0, 0, 1);
+        }
+
+        // Debug.Log(d);
+
+        Vector3Int q = min; 
+        for (int i = 0; i < group.Count; ++i) {
+          // Debug.LogFormat("checking for {0}: {1}", i, q);
+          if (!group.Contains(q)) {
+            return false;
+          }
+          q += delta;
+        }
+        // Debug.Log("----- ok -----");
+      }
+
+      return true;
+    });
+
+    public static readonly Challenge AddOpposite =
+      new Challenge("Interlock this structure with its own replica, flipped upside down and turned to be perpendicular.", (groups, initialBlocks) => {
+        if (groups.Count != 1) {
+          return false;
+        }
+
+        HashSet<Vector3Int> group = groups[0];
+
+        if (group.Count != 16) {
+          return false;
+        }
+        HashSet<Vector3Int> newBlocks = new HashSet <Vector3Int> {
+          new Vector3Int(Constants.dimensions.x / 2, 2, Constants.dimensions.z / 2),
+          new Vector3Int(Constants.dimensions.x / 2, 3, Constants.dimensions.z / 2),
+          new Vector3Int(Constants.dimensions.x / 2, 1, Constants.dimensions.z / 2 + 1),
+          new Vector3Int(Constants.dimensions.x / 2, 2, Constants.dimensions.z / 2 + 1),
+          new Vector3Int(Constants.dimensions.x / 2, 3, Constants.dimensions.z / 2 + 1),
+          new Vector3Int(Constants.dimensions.x / 2, 1, Constants.dimensions.z / 2 - 1),
+          new Vector3Int(Constants.dimensions.x / 2, 2, Constants.dimensions.z / 2 - 1),
+          new Vector3Int(Constants.dimensions.x / 2, 3, Constants.dimensions.z / 2 - 1)
+        };
+
+        return
+          initialBlocks.All(p => group.Contains(p)) &&
+          newBlocks.All(p => group.Contains(p));
+      },
+        new Vector3Int(Constants.dimensions.x / 2, 0, Constants.dimensions.z / 2),
+        new Vector3Int(Constants.dimensions.x / 2, 1, Constants.dimensions.z / 2),
+        new Vector3Int(Constants.dimensions.x / 2 - 1, 0, Constants.dimensions.z / 2),
+        new Vector3Int(Constants.dimensions.x / 2 - 1, 1, Constants.dimensions.z / 2),
+        new Vector3Int(Constants.dimensions.x / 2 - 1, 2, Constants.dimensions.z / 2),
+        new Vector3Int(Constants.dimensions.x / 2 + 1, 0, Constants.dimensions.z / 2),
+        new Vector3Int(Constants.dimensions.x / 2 + 1, 1, Constants.dimensions.z / 2),
+        new Vector3Int(Constants.dimensions.x / 2 + 1, 2, Constants.dimensions.z / 2)
+    );
 }

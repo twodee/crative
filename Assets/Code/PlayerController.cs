@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour {
   private bool isComplete;
 
   private static readonly Challenge[] challenges = {
+    Challenge.AddOpposite,
+    Challenge.Factor20,
     Challenge.CupsideDown,
     Challenge.Loop3,
     Challenge.MonotonicTower,
@@ -77,7 +79,6 @@ public class PlayerController : MonoBehaviour {
       return;
     }
 
-
     previewCrate.SetActive(false);
     RaycastHit hit;
     if (Physics.Raycast(camera.position, camera.forward, out hit, 5f, buildable)) {
@@ -127,7 +128,6 @@ public class PlayerController : MonoBehaviour {
         }
       }
     }
-
 
     if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
       feedbackText.text = challenges[level].prompt;
