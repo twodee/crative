@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour {
   private bool isComplete;
 
   private static readonly Challenge[] challenges = {
+    Challenge.FarApart,
     Challenge.AddOpposite,
     Challenge.Factor20,
     Challenge.CupsideDown,

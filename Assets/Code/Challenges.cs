@@ -611,12 +611,6 @@ struct Challenge {
       new Vector3Int(Constants.dimensions.x / 2 - 1, 3, Constants.dimensions.z / 2 + 1),
       new Vector3Int(Constants.dimensions.x / 2 - 0, 3, Constants.dimensions.z / 2 + 1),
       new Vector3Int(Constants.dimensions.x / 2 + 1, 3, Constants.dimensions.z / 2 + 1)
-
-
-
-
-      
-
     );
 
   public static readonly Challenge Outline = new Challenge("Make a structure that uses 8 crates, with each touching 2 others.", (groups, initialCrates) => {
@@ -947,6 +941,23 @@ struct Challenge {
       }
 
       return true;
+    });
+
+  public static readonly Challenge FarApart =
+    new Challenge("Place just 2 crates as far apart as possible.", (groups, initialBlocks) => {
+      if (groups.Count != 2) {
+        return false;
+      }
+
+      if (groups[0].Count != 1 || groups[1].Count != 1) {
+        return false;
+      }
+
+      Vector3 a = groups[0].First();
+      Vector3 b = groups[1].First();
+      return Mathf.Abs(a.x - b.x) + 1 == Constants.dimensions.x ||
+             Mathf.Abs(a.y - b.y) + 1 == Constants.dimensions.y ||
+             Mathf.Abs(a.z - b.z) + 1 == Constants.dimensions.z;
     });
 
     public static readonly Challenge AddOpposite =
