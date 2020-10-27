@@ -829,6 +829,48 @@ struct Challenge {
       return volume > area;
     });
 
+  public static readonly Challenge PrimePrism = new Challenge("Create a rectangular prism in which all the dimensions are different prime numbers.", (groups, initialBlocks) => {
+    if (groups.Count != 1) {
+      return false;
+    }
+
+    HashSet<Vector3Int> group = groups[0];
+
+    Vector3Int min = new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue);
+    Vector3Int max = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
+
+    foreach (Vector3Int p in group) {
+      if (p.x < min.x) {
+        min.x = p.x;
+      }
+      if (p.y < min.y) {
+        min.y = p.y;
+      }
+      if (p.z < min.z) {
+        min.z = p.z;
+      }
+      if (p.x > max.x) {
+        max.x = p.x;
+      }
+      if (p.y > max.y) {
+        max.y = p.y;
+      }
+      if (p.z > max.z) {
+        max.z = p.z;
+      }
+    }
+
+    Vector3Int dims = max - min + new Vector3Int(1, 1, 1);
+    
+    if (dims.x == dims.y || dims.x == dims.z || dims.y == dims.z) {
+      return false;
+    }
+
+    HashSet<int> primes = new HashSet<int>() {2, 3, 5, 7, 11, 13, 17, 19};
+    
+    return primes.Contains(dims.x) && primes.Contains(dims.y) && primes.Contains(dims.z);
+  });
+
   public static readonly Challenge VolumeEqualsArea =
     new Challenge("Create a solid rectangular prism whose volume-to-surface-area ratio is 1. Use more than 8 crates.", (groups, initialBlocks) => {
       if (groups.Count != 1) {
