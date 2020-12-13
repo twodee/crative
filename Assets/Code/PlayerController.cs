@@ -47,11 +47,12 @@ public class PlayerController : MonoBehaviour {
     grid = new GameObject[Constants.dimensions.x, Constants.dimensions.y, Constants.dimensions.z];
     prefabParent = GameObject.Find("Prefabs");
     camera = transform.Find("MainCamera");
-    GoToLevel(0);
+    GoToLevel(PlayerPrefs.GetInt("level", 0));
   }
 
   void GoToLevel(int level) {
     this.level = level;
+    PlayerPrefs.SetInt("level", level);
     feedbackText.text = challenges[level].prompt;
     feedbackText.enabled = true;
     isComplete = false;
