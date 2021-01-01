@@ -675,7 +675,7 @@ struct Challenge {
   );
 
   public static readonly Challenge FlipBoth =
-    new Challenge("Flip this structure both horizontal and vertically.", (groups, initialBlocks) =>
+    new Challenge("Flip this structure both horizontally and vertically.", (groups, initialBlocks) =>
       {
         if (groups.Count != 1) {
           return false;

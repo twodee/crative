@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using TMPro;
+using UnityStandardAssets.Characters.FirstPerson;
 
 public class PlayerController : MonoBehaviour {
   public GameObject cratePrefab;
@@ -8,7 +10,9 @@ public class PlayerController : MonoBehaviour {
   public LayerMask buildable;
   public int level;
   public TextMeshProUGUI feedbackText;
+  public GameObject controls;
 
+  private RigidbodyFirstPersonController fpController;
   private GameObject[,,] grid;
   private GameObject prefabParent;
   private new Transform camera;
@@ -40,21 +44,45 @@ public class PlayerController : MonoBehaviour {
   void Awake() {
     QualitySettings.vSyncCount = 0;
     Application.targetFrameRate = 50;
-    Debug.Log(Application.targetFrameRate);
   }
 
   void Start() {
+    fpController = GetComponent<RigidbodyFirstPersonController>();
     grid = new GameObject[Constants.dimensions.x, Constants.dimensions.y, Constants.dimensions.z];
     prefabParent = GameObject.Find("Prefabs");
     camera = transform.Find("MainCamera");
     GoToLevel(PlayerPrefs.GetInt("level", 0));
   }
 
+  IEnumerator WaitForQuestionMark(bool showFeedback = true) {
+    yield return null;
+    
+    bool isPressed = false;
+    while (!isPressed) {
+      if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
+        isPressed = true;
+      } else {
+        yield return null;
+      }
+    }
+
+    controls.SetActive(false);
+    if (showFeedback) {
+      feedbackText.enabled = true;
+    }
+    fpController.enabled = true;
+  }
+
   void GoToLevel(int level) {
     this.level = level;
     PlayerPrefs.SetInt("level", level);
     feedbackText.text = challenges[level].prompt;
-    feedbackText.enabled = true;
+    feedbackText.enabled = level != 0;
+    if (level == 0) {
+      fpController.enabled = false;
+      StartCoroutine(WaitForQuestionMark());
+      controls.SetActive(true);
+    }
     isComplete = false;
 
     for (int i = 0; i < prefabParent.transform.childCount; i += 1) {
@@ -77,6 +105,11 @@ public class PlayerController : MonoBehaviour {
   }
 
   void Update() {
+    
+    if (controls.activeInHierarchy) {
+      return;
+    }
+
     if (isComplete && Input.GetButtonUp("Fire1")) {
       GoToLevel((level + 1) % challenges.Length);
       return;
@@ -132,24 +165,35 @@ public class PlayerController : MonoBehaviour {
       }
     }
 
-    if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
+    if (!(Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
       feedbackText.text = challenges[level].prompt;
       feedbackText.enabled = true;
     }
 
     if (Input.GetButtonUp("Submit")) {
       List<HashSet<Vector3Int>> groups = Group();
-
+      
       if (challenges[level].IsCorrect(groups, challenges[level].initialBlocks)) {
-        feedbackText.text = "You did it! Life's full of good things. Click to continue.";
+        if (level == 19) {
+          feedbackText.text = "You're done with crative, but you're not done being creative! Click to start a new game.";
+        } else {
+          feedbackText.text = "You got it! Click to continue.";
+        }
         isComplete = true;
       } else {
-        feedbackText.text = "Try again, we all make mistakes sometimes.";
+        feedbackText.text = "Not quite. Keep trying!";
       }
       feedbackText.enabled = true;
     }
 
-    if (Input.GetKeyDown(KeyCode.Alpha0)) {
+    if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey (KeyCode.RightShift)) && Input.GetKeyDown (KeyCode.Slash)) {
+      print("foog");
+      controls.SetActive(true);
+      fpController.enabled = false;
+      StartCoroutine(WaitForQuestionMark(false));
+    }
+
+    if (Input.GetKeyDown(KeyCode.R)) {
       GoToLevel(level);
     }
   }
